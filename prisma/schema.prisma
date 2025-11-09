@@ -14,10 +14,102 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User { 
-	id    Int     @id @default(autoincrement()) 
-	email String  @unique
-	name  String?
-  provider String
-  
-} 
+model User {
+  id              String   @id @default(uuid())
+  email           String   @unique
+  name            String?
+  phone           String?
+  provider        String?
+  isEmailVerified Boolean  @default(false)
+  isPhoneVerified Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  credentials   UserCredential?
+  oauthAccounts OAuthAccount[]
+  sessions      Session[]
+  refreshTokens RefreshToken[]
+  otps          OTP[]
+  auditLogs     AuditLogs[]
+}
+
+model UserCredential {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  passwordHash       String
+  lastPasswordChange DateTime @default(now())
+  createdAt          DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OAuthAccount {
+  id                String    @id @default(uuid())
+  userId            String
+  provider          String
+  providerAccountId String
+  accessToken       String
+  refreshToken      String?
+  expiresAt         DateTime?
+  createdAt         DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  sessionToken String   @unique
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RefreshToken {
+  id         String   @id @default(uuid())
+  userId     String
+  tokenHash  String   @unique
+  revoked    Boolean  @default(false)
+  replacedBy String?
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replacedByToken RefreshToken?  @relation("TokenReplacement", fields: [replacedBy], references: [id])
+  replacements    RefreshToken[] @relation("TokenReplacement")
+
+  @@index([userId])
+  @@index([tokenHash])
+}
+
+model OTP {
+  id        String   @id @default(uuid())
+  userId    String
+  codeHash  String
+  type      String
+  attempts  Int      @default(0)
+  consumed  Boolean  @default(false)
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([codeHash])
+}
+
+model AuditLogs {
+  id        String   @id @default(uuid())
+  userId    String?
+  eventType String
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
