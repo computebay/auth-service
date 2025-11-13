@@ -1,12 +1,10 @@
 import { z } from "zod";
 
-export const CreateUserSchema = z.object({
-    email: z.email(),
+export const RegisterUserSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(8),
     name: z.string().optional(),
     phone: z.string().optional(),
-    provider: z.string().optional(),
-    isEmailVerified: z.boolean().default(false),
-    isPhoneVerified: z.boolean().default(false),
 });
 
-export type CreateUserInput = z.infer<typeof CreateUserSchema>;
+export type RegisterUserInput = z.infer<typeof RegisterUserSchema>;

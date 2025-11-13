@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as authController from "./auth.controller.ts";
-import { CreateUserSchema } from "../../../schemas";
+import { RegisterUserSchema } from "../../../schemas";
 import { validate } from "../../../middlewares/validate.ts";
 const router = Router();
 
@@ -11,7 +11,7 @@ const router = Router();
  * @route POST /api/v1/auth/register
  * @body { email, password, name? }
  */
-router.post("/register", validate(CreateUserSchema), authController.register);
+router.post("/register", validate(RegisterUserSchema), authController.register);
 
 /**
  * @desc Login with email/password
