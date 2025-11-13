@@ -4,8 +4,6 @@ import { RegisterUserSchema } from "../../../schemas";
 import { validate } from "../../../middlewares/validate.ts";
 const router = Router();
 
-
-
 /**
  * @desc Register new user
  * @route POST /api/v1/auth/register
@@ -19,20 +17,17 @@ router.post("/register", validate(RegisterUserSchema), authController.register);
  * @body { email, password }
  */
 
-
 /**
  * @desc Logout (invalidate refresh token)
  * @route POST /api/v1/auth/logout
  * @body { refreshToken }
  */
 
-
 /**
  * @desc Forgot password (send OTP)
  * @route POST /api/v1/auth/forgot-password
  * @body { email }
  */
-
 
 /**
  * @desc Verify OTP (email or phone)

@@ -18,7 +18,6 @@ export const register = async (req: Request, res: Response) => {
       },
     });
   } catch (err: any) {
-
     // APP ERROR HANDLING
     if (err instanceof AppError) {
       return res.status(err.status).json({

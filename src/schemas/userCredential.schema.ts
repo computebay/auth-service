@@ -1,19 +1,20 @@
 import { z } from "zod";
 
 export const loginUserSchema = z.object({
-    userId: z.uuid(),
-    passwordHash: z.string().min(8),
+  userId: z.uuid(),
+  passwordHash: z.string().min(8),
 });
 
 export const UpdateUserCredentialSchema = z.object({
-    id: z.uuid(),
-    passwordHash: z.string().min(8).optional(),
-    lastPasswordChange: z.date().optional(),
+  id: z.uuid(),
+  passwordHash: z.string().min(8).optional(),
+  lastPasswordChange: z.date().optional(),
 });
 
 export type LoginUserCredential = z.infer<typeof loginUserSchema>;
-export type UpdateUserCredentialInput = z.infer<typeof UpdateUserCredentialSchema>;
-
+export type UpdateUserCredentialInput = z.infer<
+  typeof UpdateUserCredentialSchema
+>;
 
 /*
 model UserCredential {

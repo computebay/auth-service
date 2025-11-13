@@ -13,9 +13,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/v1", routes);
 
 app.get("/", (req: Request, res: Response) => {
-    res.send("Auth API is running...");
+  res.send("Auth API is running...");
 });
 
 app.listen(3000, () => {
-    logger.info("Server is running on http://localhost:3000");
+  logger.info("Server is running on http://localhost:3000");
 });
