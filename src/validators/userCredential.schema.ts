@@ -12,7 +12,9 @@ export const UpdateUserCredentialSchema = z.object({
 });
 
 export type LoginUserCredential = z.infer<typeof loginUserSchema>;
-export type UpdateUserCredentialInput = z.infer<typeof UpdateUserCredentialSchema>;
+export type UpdateUserCredentialInput = z.infer<
+  typeof UpdateUserCredentialSchema
+>;
 
 /*
 model UserCredential {

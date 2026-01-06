@@ -1,6 +1,10 @@
 import { Router } from "express";
 import * as authController from "./auth.controller";
-import { RegisterUserSchema, loginUserSchema, RefreshTokenSchema } from "../../../validators";
+import {
+  RegisterUserSchema,
+  loginUserSchema,
+  RefreshTokenSchema,
+} from "../../../validators";
 import { validate } from "../../../middlewares/validate";
 const router = Router();
 
@@ -16,14 +20,14 @@ router.post("/register", validate(RegisterUserSchema), authController.register);
  * @route POST /api/v1/auth/login
  * @body { email, password }
  */
-router.post("/login", validate(loginUserSchema), authController.login)
+router.post("/login", validate(loginUserSchema), authController.login);
 
 /**
  * @desc Refresh (refresh the access token)
  * @route POST /api/v1/auth/refresh
  * @body { refreshToken }
-*/
-router.post("/refresh", validate(RefreshTokenSchema), authController.refresh)
+ */
+router.post("/refresh", validate(RefreshTokenSchema), authController.refresh);
 
 /**
  * @desc Logout (invalidate refresh token)

@@ -15,9 +15,9 @@ export const UpdateRefreshTokenSchema = z.object({
 });
 
 export const RefreshTokenSchema = z.object({
-  refreshToken: z.string().min(1)
-})
+  refreshToken: z.string().min(1),
+});
 
 export type CreateRefreshTokenInput = z.infer<typeof CreateRefreshTokenSchema>;
 export type UpdateRefreshTokenInput = z.infer<typeof UpdateRefreshTokenSchema>;
-export type RefreshTokenInput = z.infer<typeof RefreshTokenSchema>
+export type RefreshTokenInput = z.infer<typeof RefreshTokenSchema>;

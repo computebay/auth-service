@@ -1,5 +1,9 @@
 import type { Request, Response } from "express";
-import { registerUser, loginUser, refreshAuthToken } from "../../../services/auth/auth.service";
+import {
+  registerUser,
+  loginUser,
+  refreshAuthToken,
+} from "../../../services/auth/auth.service";
 import { AppError } from "../../../utils/error";
 
 export const register = async (req: Request, res: Response) => {
@@ -102,11 +106,10 @@ export const login = async (req: Request, res: Response) => {
       },
     });
   }
-}
-
+};
 
 export const refresh = async (req: Request, res: Response) => {
-  const { refreshToken } = req.body
+  const { refreshToken } = req.body;
   try {
     const token = await refreshAuthToken(refreshToken);
 
