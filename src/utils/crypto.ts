@@ -11,3 +11,4 @@ export const verifyPassword = async (
 ): Promise<boolean> => {
   return await argon2.verify(hash, password);
 };
+

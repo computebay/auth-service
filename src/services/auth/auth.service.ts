@@ -5,7 +5,7 @@ import logger from "../../libs/logger";
 import { AppError } from "../../utils/error";
 import { hashPassword } from "../../utils/crypto";
 import { logAudit } from "../../utils/audit";
-
+import { signAccessToken, generateRefreshToken } from "../../utils/token";
 
 export const registerUser = async (data: RegisterUserInput) => {
     try {
@@ -26,7 +26,7 @@ export const registerUser = async (data: RegisterUserInput) => {
             const user = await tx.user.create({
                 data: {
                     email: data.email,
-                    // password: hashedPassword,
+
                     name: data.name,
 
                     credentials: {
@@ -37,7 +37,36 @@ export const registerUser = async (data: RegisterUserInput) => {
                 },
             });
 
+            const org = await tx.organization.create({
+                data: {
+                    name: `${data.email}'s org`,
+                    ownerId: user.id
+                },
+            });
 
+            await tx.membership.create({
+                data: {
+                    userId: user.id,
+                    orgId: org.id,
+                    role: "OWNER",
+                },
+            });
+
+            const accessToken = signAccessToken({
+                sub: user.id,
+                orgId: org.id,
+                role: "OWNER"
+            })
+
+            const { token, hash } = generateRefreshToken();
+
+            await tx.refreshToken.create({
+                data: {
+                    userId: user.id,
+                    tokenHash: hash,
+                    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), //1month
+                }
+            })
             await tx.auditLogs.create({
                 data: {
                     userId: user.id,
@@ -45,22 +74,44 @@ export const registerUser = async (data: RegisterUserInput) => {
                     meta: {
                         provider: "local",
                         email: user.email
-                        
+
 
                     }
                 }
             })
 
-            return user;
+            return {
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                },
+                org: {
+                    id: org.id,
+                    role: "OWNER",
+                },
+                accessToken,
+                refreshToken: token,
+            };
         })
 
         return result
 
 
+
+
     } catch (error: any) {
+
+
         if (error instanceof AppError) throw error;
 
-        logger.error("Error registering user:", error);
+        logger.error({
+            message: error.message,
+            stack: error.stack,
+            code: error.code,
+        });
+
+
         throw new AppError("Internal server error", 500, "INTERNAL_ERROR");
     }
 };
