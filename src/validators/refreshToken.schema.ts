@@ -14,5 +14,10 @@ export const UpdateRefreshTokenSchema = z.object({
   replacedBy: z.string().uuid().optional(),
 });
 
+export const RefreshTokenSchema = z.object({
+  refreshToken: z.string().min(1)
+})
+
 export type CreateRefreshTokenInput = z.infer<typeof CreateRefreshTokenSchema>;
 export type UpdateRefreshTokenInput = z.infer<typeof UpdateRefreshTokenSchema>;
+export type RefreshTokenInput = z.infer<typeof RefreshTokenSchema>

@@ -1,10 +1,10 @@
 import prisma from "../../config/db";
-import type { RegisterUserInput } from "../../validators/user.schema";
-import type { LoginUserCredential } from "../../validators/userCredential.schema";
+import type { UpdateRefreshTokenInput, RegisterUserInput, LoginUserCredential, RefreshTokenInput } from "../../validators";
 import logger from "../../libs/logger";
 import { AppError } from "../../utils/error";
 import { hashPassword, verifyPassword } from "../../utils/crypto";
 import { logAudit } from "../../utils/audit";
+import crypto from 'crypto'
 import { signAccessToken, generateRefreshToken } from "../../utils/token";
 
 export const registerUser = async (data: RegisterUserInput) => {
@@ -167,6 +167,98 @@ export const loginUser = async (data: LoginUserCredential) => {
             code: error.code,
         });
 
+        throw new AppError("Internal server error", 500, "INTERNAL_ERROR");
+    }
+};
+
+export const refreshAuthToken = async (refreshToken: string) => {
+
+    try {
+        // hash incoming token
+        const tokenHash = crypto.createHash("sha256").update(refreshToken, "utf-8").digest("hex")
+
+       
+        // find token in DB
+        const storedToken = await prisma.refreshToken.findUnique({
+            where: { tokenHash },
+            include: {
+                user: {
+                    include: {
+                        memberships: true,
+                    },
+                },
+            },
+        });
+
+        //  validations
+        if (!storedToken) {
+            throw new AppError("Invalid refresh token", 401, "INVALID_REFRESH_TOKEN");
+        }
+
+        if (storedToken.revoked) {
+            throw new AppError("Refresh token revoked", 401, "TOKEN_REVOKED");
+        }
+
+        if (storedToken.expiresAt < new Date()) {
+            throw new AppError("Refresh token expired", 401, "TOKEN_EXPIRED");
+        }
+
+        const membership = storedToken.user.memberships[0];
+        if (!membership) {
+            throw new AppError("No org membership found", 403, "NO_MEMBERSHIP");
+        }
+
+        // rotate token (transaction)
+        const result = await prisma.$transaction(async (tx) => {
+
+
+            // issue new refresh token
+            const { token: newRefreshToken, hash: newHash } =
+                generateRefreshToken();
+
+            const newToken = await tx.refreshToken.create({
+                data: {
+                    userId: storedToken.userId,
+                    tokenHash: newHash,
+                    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+                },
+            });
+
+            // revoke old token
+            await tx.refreshToken.update({
+                where: { id: storedToken.id },
+                data: {
+                    revoked: true,
+                    replacedBy: newToken.id
+                },
+
+            });
+
+            // issue new access token
+            const accessToken = signAccessToken({
+                sub: storedToken.userId,
+                orgId: membership.orgId,
+                role: membership.role,
+            });
+
+            return {
+                accessToken,
+                refreshToken: newRefreshToken,
+            };
+        });
+
+        await logAudit("TOKEN_REFRESHED", storedToken.userId, {
+            tokenId: storedToken.id,
+        });
+
+        return result;
+    } catch (error: any) {
+        if (error instanceof AppError) throw error;
+        logger.error({
+            message: error.message,
+            stack: error.stack,
+            code: error.code,
+        });
         throw new AppError("Internal server error", 500, "INTERNAL_ERROR");
     }
 };
