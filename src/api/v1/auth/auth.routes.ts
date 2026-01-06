@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as authController from "./auth.controller";
-import { RegisterUserSchema } from "../../../validators";
+import { RegisterUserSchema, loginUserSchema } from "../../../validators";
 import { validate } from "../../../middlewares/validate";
 const router = Router();
 
@@ -16,7 +16,7 @@ router.post("/register", validate(RegisterUserSchema), authController.register);
  * @route POST /api/v1/auth/login
  * @body { email, password }
  */
-
+router.post("/login", validate(loginUserSchema), authController.login)
 /**
  * @desc Logout (invalidate refresh token)
  * @route POST /api/v1/auth/logout
