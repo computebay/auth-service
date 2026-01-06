@@ -11,26 +11,29 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // url      = env("DATABASE_URL")
 }
-
+enum OAuthProvider {
+  GOOGLE
+  GITHUB
+}
 model User {
-  id              String   @id @default(uuid())
-  email           String   @unique
+  id              String          @id @default(uuid())
+  email           String          @unique
   name            String?
   phone           String?
-  provider        String?
-  isEmailVerified Boolean  @default(false)
-  isPhoneVerified Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  credentials   UserCredential?
-  oauthAccounts OAuthAccount[]
-  sessions      Session[]
-  refreshTokens RefreshToken[]
-  otps          OTP[]
-  auditLogs     AuditLogs[]
+  isEmailVerified Boolean         @default(false)
+  isPhoneVerified Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  provider        OAuthProvider
+  credentials     UserCredential?
+  oauthAccounts   OAuthAccount[]
+  sessions        Session[]
+  refreshTokens   RefreshToken[]
+  otps            OTP[]
+  auditLogs       AuditLogs[]
+  memberships     Membership[]
 }
 
 model UserCredential {
@@ -112,4 +115,32 @@ model AuditLogs {
   createdAt DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  ownerId   String
+  createdAt DateTime @default(now())
+
+  memberships Membership[]
+}
+
+model Membership {
+  id     String @id @default(uuid())
+  userId String
+  orgId  String
+  role   Role
+
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  org  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, orgId])
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  USER
+  PROVIDER
 }

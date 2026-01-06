@@ -1,10 +1,10 @@
-import prisma from "../config/db";
-import type { RegisterUserInput } from "../schemas/user.schema";
-import type { LoginUserCredential } from "../schemas/userCredential.schema";
-import logger from "../libs/logger";
-import { AppError } from "../utils/error";
-import { hashPassword } from "../utils/crypto";
-import { logAudit } from "../utils/audit";
+import prisma from "../../config/db";
+import type { RegisterUserInput } from "../../validators/user.schema";
+import type { LoginUserCredential } from "../../validators/userCredential.schema";
+import logger from "../../libs/logger";
+import { AppError } from "../../utils/error";
+import { hashPassword } from "../../utils/crypto";
+import { logAudit } from "../../utils/audit";
 
 
 export const registerUser = async (data: RegisterUserInput) => {
