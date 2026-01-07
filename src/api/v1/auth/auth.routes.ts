@@ -34,7 +34,8 @@ router.post("/refresh", validate(RefreshTokenSchema), authController.refresh);
  * @desc Logout (invalidate refresh token)
  * @route POST /api/v1/auth/logout
  * @body { refreshToken }
- */
+*/
+router.post("/logout", validate(RefreshTokenSchema), authController.logout);
 
 /**
  * @desc Forgot password (send OTP)
@@ -53,4 +54,5 @@ router.post("/refresh", validate(RefreshTokenSchema), authController.refresh);
  * @route GET /api/v1/auth/me
  * @auth Required (JWT)
  */
+router.get('/me',authenticate,authController.getUser)
 export default router;

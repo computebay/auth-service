@@ -187,49 +187,45 @@ export const loginUser = async (data: LoginUserCredential) => {
         throw new AppError("Internal server error", 500, "INTERNAL_ERROR");
     }
 };
-
 export const refreshAuthToken = async (refreshToken: string) => {
     try {
-        // hash incoming token
         const tokenHash = crypto
             .createHash("sha256")
-            .update(refreshToken, "utf-8")
+            .update(refreshToken, "utf8")
             .digest("hex");
 
-        // find token in DB
-        const storedToken = await prisma.refreshToken.findUnique({
-            where: { tokenHash },
-            include: {
-                user: {
-                    include: {
-                        memberships: true,
+        const result = await prisma.$transaction(async (tx) => {
+            const storedToken = await tx.refreshToken.findUnique({
+                where: { tokenHash },
+                include: {
+                    user: {
+                        include: {
+                            memberships: true,
+                        },
                     },
                 },
-            },
-        });
+            });
 
-        //  validations
-        if (!storedToken) {
-            throw new AppError("Invalid refresh token", 401, "INVALID_REFRESH_TOKEN");
-        }
+            if (!storedToken) {
+                throw new AppError("Invalid refresh token", 401, "INVALID_REFRESH_TOKEN");
+            }
 
-        if (storedToken.revoked) {
-            throw new AppError("Refresh token revoked", 401, "TOKEN_REVOKED");
-        }
+            if (storedToken.revoked) {
+                throw new AppError("Refresh token revoked", 401, "TOKEN_REVOKED");
+            }
 
-        if (storedToken.expiresAt < new Date()) {
-            throw new AppError("Refresh token expired", 401, "TOKEN_EXPIRED");
-        }
+            if (storedToken.expiresAt < new Date()) {
+                throw new AppError("Refresh token expired", 401, "TOKEN_EXPIRED");
+            }
 
-        const membership = storedToken.user.memberships[0];
-        if (!membership) {
-            throw new AppError("No org membership found", 403, "NO_MEMBERSHIP");
-        }
+            const membership = storedToken.user.memberships[0];
+            if (!membership) {
+                throw new AppError("No org membership found", 403, "NO_MEMBERSHIP");
+            }
 
-        // rotate token (transaction)
-        const result = await prisma.$transaction(async (tx) => {
-            // issue new refresh token
-            const { token: newRefreshToken, hash: newHash } = generateRefreshToken();
+            // rotate refresh token
+            const { token: newRefreshToken, hash: newHash } =
+                generateRefreshToken();
 
             const newToken = await tx.refreshToken.create({
                 data: {
@@ -239,7 +235,6 @@ export const refreshAuthToken = async (refreshToken: string) => {
                 },
             });
 
-            // revoke old token
             await tx.refreshToken.update({
                 where: { id: storedToken.id },
                 data: {
@@ -248,11 +243,21 @@ export const refreshAuthToken = async (refreshToken: string) => {
                 },
             });
 
-            // issue new access token
             const accessToken = signAccessToken({
                 sub: storedToken.userId,
                 orgId: membership.orgId,
                 role: membership.role,
+            });
+
+            await tx.auditLogs.create({
+                data: {
+                    userId: storedToken.userId,
+                    eventType: "TOKEN_REFRESHED",
+                    meta: {
+                        oldTokenId: storedToken.id,
+                        newTokenId: newToken.id,
+                    },
+                },
             });
 
             return {
@@ -261,18 +266,101 @@ export const refreshAuthToken = async (refreshToken: string) => {
             };
         });
 
-        await logAudit("TOKEN_REFRESHED", storedToken.userId, {
-            tokenId: storedToken.id,
-        });
-
         return result;
     } catch (error: any) {
         if (error instanceof AppError) throw error;
+
         logger.error({
             message: error.message,
             stack: error.stack,
-            code: error.code,
         });
+
+        throw new AppError("Internal server error", 500, "INTERNAL_ERROR");
+    }
+};
+export const logoutUser = async (refreshToken: string) => {
+    try {
+        const tokenHash = crypto
+            .createHash("sha256")
+            .update(refreshToken, "utf8")
+            .digest("hex");
+
+        await prisma.$transaction(async (tx) => {
+            const storedToken = await tx.refreshToken.findUnique({
+                where: { tokenHash },
+            });
+
+            // idempotent logout
+            if (!storedToken || storedToken.revoked) {
+                return;
+            }
+
+            await tx.refreshToken.update({
+                where: { id: storedToken.id },
+                data: {
+                    revoked: true,
+                },
+            });
+
+            await tx.auditLogs.create({
+                data: {
+                    userId: storedToken.userId,
+                    eventType: "USER_LOGOUT",
+                    meta: {
+                        tokenId: storedToken.id,
+                    },
+                },
+            });
+        });
+    } catch (error: any) {
+        logger.error({
+            message: error.message,
+            stack: error.stack,
+        });
+
+        throw new AppError("Internal server error", 500, "INTERNAL_ERROR");
+    }
+};
+
+export const getCurrentUser = async (userId: string) => {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                phone: true,
+                isEmailVerified: true,
+                isPhoneVerified: true,
+                createdAt: true,
+                memberships: {
+                    select: {
+                        org: {
+                            select: {
+                                id: true,
+                                name: true,
+                            },
+                        },
+                        role: true,
+                    },
+                },
+            },
+        });
+
+        if (!user) {
+            throw new AppError("User not found", 404, "USER_NOT_FOUND");
+        }
+
+        return user;
+    } catch (error: any) {
+        if (error instanceof AppError) throw error;
+
+        logger.error({
+            message: error.message,
+            stack: error.stack,
+        });
+
         throw new AppError("Internal server error", 500, "INTERNAL_ERROR");
     }
 };
