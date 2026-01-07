@@ -1,11 +1,12 @@
 import { Router } from "express";
 import * as authController from "./auth.controller";
 import {
-  RegisterUserSchema,
-  loginUserSchema,
-  RefreshTokenSchema,
+    RegisterUserSchema,
+    loginUserSchema,
+    RefreshTokenSchema,
 } from "../../../validators";
 import { validate } from "../../../middlewares/validate";
+import { authenticate } from "../../../middlewares/auth.middleware";
 const router = Router();
 
 /**

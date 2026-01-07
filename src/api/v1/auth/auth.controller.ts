@@ -109,6 +109,7 @@ export const login = async (req: Request, res: Response) => {
 };
 
 export const refresh = async (req: Request, res: Response) => {
+  
   const { refreshToken } = req.body;
   try {
     const token = await refreshAuthToken(refreshToken);
