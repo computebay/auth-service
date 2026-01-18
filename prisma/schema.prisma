@@ -115,7 +115,7 @@ model OTP {
   codeHash  String
   type      String
   attempts  Int      @default(0)
-  consumed  Boolean  @default(false)
+  
   expiresAt DateTime
   used      Boolean  @default(false)
   createdAt DateTime @default(now())
