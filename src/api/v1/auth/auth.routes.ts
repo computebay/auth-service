@@ -7,12 +7,18 @@ import {
 } from "../../../validators";
 import { validate } from "../../../middlewares/validate";
 import { authenticate } from "../../../middlewares/auth.middleware";
+
 const router = Router();
 
+router.get("/", (req, res) => {
+    res.send("auth api is up")
+
+})
 /**
  * @desc Register new user
  * @route POST /api/v1/auth/register
  * @body { email, password, name? }
+ * 
  */
 router.post("/register", validate(RegisterUserSchema), authController.register);
 
@@ -54,5 +60,5 @@ router.post("/logout", validate(RefreshTokenSchema), authController.logout);
  * @route GET /api/v1/auth/me
  * @auth Required (JWT)
  */
-router.get('/me',authenticate,authController.getUser)
+router.get('/me', authenticate, authController.getUser)
 export default router;
