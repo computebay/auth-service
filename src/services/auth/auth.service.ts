@@ -364,3 +364,151 @@ export const getCurrentUser = async (userId: string) => {
         throw new AppError("Internal server error", 500, "INTERNAL_ERROR");
     }
 };
+
+export const forgotPassword = async (data: { email: string }) => {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { email: data.email },
+        });
+
+        if (!user) {
+            // Return generic message for security
+            logger.warn(`Forgot password attempt for non-existent email: ${data.email}`);
+            return {
+                message: "If an account exists with this email, you will receive an OTP",
+            };
+        }
+
+        // Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const codeHash = crypto
+            .createHash("sha256")
+            .update(otp, "utf8")
+            .digest("hex");
+
+        const expiresAt = new Date(Date.now() + 1000 * 60 * 15); // 15 minutes
+
+        await prisma.oTP.create({
+            data: {
+                userId: user.id,
+                codeHash,
+                type: "PASSWORD_RESET",
+                expiresAt,
+            },
+        });
+
+        // TODO: Send OTP via email service
+        logger.info(`OTP generated for user ${user.id}: ${otp}`);
+
+        await prisma.auditLogs.create({
+            data: {
+                userId: user.id,
+                eventType: "PASSWORD_RESET_REQUESTED",
+                meta: {
+                    email: user.email,
+                },
+            },
+        });
+
+        return {
+            message: "If an account exists with this email, you will receive an OTP",
+        };
+    } catch (error: any) {
+        if (error instanceof AppError) throw error;
+
+        logger.error({
+            message: error.message,
+            stack: error.stack,
+        });
+
+        throw new AppError("Internal server error", 500, "INTERNAL_ERROR");
+    }
+};
+
+export const verifyOTP = async (data: {
+    email: string;
+    code: string;
+    type: string;
+}) => {
+    try {
+        const codeHash = crypto
+            .createHash("sha256")
+            .update(data.code, "utf8")
+            .digest("hex");
+
+        const user = await prisma.user.findUnique({
+            where: { email: data.email },
+        });
+
+        if (!user) {
+            throw new AppError("User not found", 404, "USER_NOT_FOUND");
+        }
+
+        const otp = await prisma.oTP.findFirst({
+            where: {
+                userId: user.id,
+                codeHash,
+                type: data.type,
+                consumed: false,
+            },
+        });
+
+        if (!otp) {
+            throw new AppError("Invalid OTP", 400, "INVALID_OTP");
+        }
+
+        if (otp.expiresAt < new Date()) {
+            throw new AppError("OTP expired", 400, "OTP_EXPIRED");
+        }
+
+        if (otp.attempts >= 5) {
+            await prisma.oTP.update({
+                where: { id: otp.id },
+                data: { consumed: true },
+            });
+            throw new AppError(
+                "Too many failed attempts",
+                429,
+                "TOO_MANY_ATTEMPTS",
+            );
+        }
+
+        // Mark OTP as consumed
+        await prisma.oTP.update({
+            where: { id: otp.id },
+            data: { consumed: true },
+        });
+
+        // Mark email as verified if type is EMAIL_VERIFICATION
+        if (data.type === "EMAIL_VERIFICATION") {
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { isEmailVerified: true },
+            });
+        }
+
+        await prisma.auditLogs.create({
+            data: {
+                userId: user.id,
+                eventType: "OTP_VERIFIED",
+                meta: {
+                    type: data.type,
+                },
+            },
+        });
+
+        return {
+            message: "OTP verified successfully",
+            verified: true,
+        };
+    } catch (error: any) {
+        if (error instanceof AppError) throw error;
+
+        logger.error({
+            message: error.message,
+            stack: error.stack,
+        });
+
+        throw new AppError("Internal server error", 500, "INTERNAL_ERROR");
+    }
+};

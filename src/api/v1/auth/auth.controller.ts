@@ -4,7 +4,9 @@ import {
   loginUser,
   refreshAuthToken,
   logoutUser,
-  getCurrentUser
+  getCurrentUser,
+  forgotPassword,
+  verifyOTP,
 } from "../../../services/auth/auth.service";
 import { AppError } from "../../../utils/error";
 
@@ -255,6 +257,108 @@ export const getUser = async (req: Request, res: Response) => {
 
     // UNEXPECTED ERROR HANDLING
     console.error("Unexpected error in user logout:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      data: null,
+      error: {
+        code: "INTERNAL_ERROR",
+        details: process.env.NODE_ENV === "development" ? err.stack : undefined,
+      },
+      meta: {
+        version: "v1",
+        timestamp: new Date().toISOString(),
+        requestId: req.headers["x-request-id"] || null,
+      },
+    });
+  }
+}
+
+export const handleForgotPassword = async (req: Request, res: Response) => {
+  try {
+    const result = await forgotPassword(req.body);
+
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+      data: null,
+      error: null,
+      meta: {
+        version: "v1",
+        timestamp: new Date().toISOString(),
+        requestId: req.headers["x-request-id"] || null,
+      },
+    });
+  } catch (err: any) {
+    // APP ERROR HANDLING
+    if (err instanceof AppError) {
+      return res.status(err.status).json({
+        success: false,
+        message: err.message,
+        data: null,
+        error: { code: err.code, details: err.details },
+        meta: {
+          version: "v1",
+          timestamp: new Date().toISOString(),
+          requestId: req.headers["x-request-id"] || null,
+        },
+      });
+    }
+
+    // UNEXPECTED ERROR HANDLING
+    console.error("Unexpected error in forgot password:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      data: null,
+      error: {
+        code: "INTERNAL_ERROR",
+        details: process.env.NODE_ENV === "development" ? err.stack : undefined,
+      },
+      meta: {
+        version: "v1",
+        timestamp: new Date().toISOString(),
+        requestId: req.headers["x-request-id"] || null,
+      },
+    });
+  }
+}
+
+export const handleVerifyOTP = async (req: Request, res: Response) => {
+  try {
+    const result = await verifyOTP(req.body);
+
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+      data: result,
+      error: null,
+      meta: {
+        version: "v1",
+        timestamp: new Date().toISOString(),
+        requestId: req.headers["x-request-id"] || null,
+      },
+    });
+  } catch (err: any) {
+    // APP ERROR HANDLING
+    if (err instanceof AppError) {
+      return res.status(err.status).json({
+        success: false,
+        message: err.message,
+        data: null,
+        error: { code: err.code, details: err.details },
+        meta: {
+          version: "v1",
+          timestamp: new Date().toISOString(),
+          requestId: req.headers["x-request-id"] || null,
+        },
+      });
+    }
+
+    // UNEXPECTED ERROR HANDLING
+    console.error("Unexpected error in verify OTP:", err);
 
     return res.status(500).json({
       success: false,

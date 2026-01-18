@@ -4,6 +4,8 @@ import {
     RegisterUserSchema,
     loginUserSchema,
     RefreshTokenSchema,
+    ForgotPasswordSchema,
+    VerifyOTPSchema,
 } from "../../../validators";
 import { validate } from "../../../middlewares/validate";
 import { authenticate } from "../../../middlewares/auth.middleware";
@@ -48,12 +50,14 @@ router.post("/logout", validate(RefreshTokenSchema), authController.logout);
  * @route POST /api/v1/auth/forgot-password
  * @body { email }
  */
+router.post("/forgot-password", validate(ForgotPasswordSchema), authController.handleForgotPassword);
 
 /**
  * @desc Verify OTP (email or phone)
  * @route POST /api/v1/auth/verify-otp
- * @body { emailOrPhone, otp, purpose }
+ * @body { email, code, type }
  */
+router.post("/verify-otp", validate(VerifyOTPSchema), authController.handleVerifyOTP);
 
 /**
  * @desc Get logged-in user (for clients)
