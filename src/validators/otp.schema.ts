@@ -21,10 +21,17 @@ export const ForgotPasswordSchema = z.object({
 export const VerifyOTPSchema = z.object({
   email: z.string().email(),
   code: z.string().min(4).max(6),
-  type: z.enum(["PASSWORD_RESET", "EMAIL_VERIFICATION", "PHONE_VERIFICATION"]),
+  type: z.enum(["EMAIL_VERIFICATION", "PHONE_VERIFICATION"]),
+});
+
+export const ResetPasswordSchema = z.object({
+  email: z.string().email(),
+  otp: z.string().min(4).max(6),
+  newPassword:z.string(),
 });
 
 export type CreateOTPInput = z.infer<typeof CreateOTPSchema>;
 export type UpdateOTPInput = z.infer<typeof UpdateOTPSchema>;
 export type ForgotPasswordInput = z.infer<typeof ForgotPasswordSchema>;
 export type VerifyOTPInput = z.infer<typeof VerifyOTPSchema>;
+export type ResetPasswordInput = z.infer<typeof ResetPasswordSchema>;

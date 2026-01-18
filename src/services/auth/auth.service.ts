@@ -397,8 +397,17 @@ export const forgotPassword = async (data: { email: string }) => {
             },
         });
 
-        // TODO: Send OTP via email service
+
         logger.info(`OTP generated for user ${user.id}: ${otp}`);
+        const resp = await fetch(`${Bun.env.NOTIFICATION_SERVICE_URL}/reset-password`, {
+            method: "POST",
+            body: JSON.stringify({
+                to: user.email,
+                otp
+            }),
+            headers: { "Content-Type": "application/json" },
+        })
+        logger.info(resp.json())
 
         await prisma.auditLogs.create({
             data: {
@@ -511,4 +520,73 @@ export const verifyOTP = async (data: {
 
         throw new AppError("Internal server error", 500, "INTERNAL_ERROR");
     }
+};
+export const resetPassword = async (data: {
+    email: string;
+    otp: string;
+    newPassword: string;
+}) => {
+    return prisma.$transaction(async (tx) => {
+        const user = await tx.user.findUnique({
+            where: { email: data.email },
+            include: { credentials: true },
+        });
+
+        if (!user || !user.credentials) {
+            throw new AppError("Invalid request", 400, "INVALID_REQUEST");
+        }
+
+        const codeHash = crypto
+            .createHash("sha256")
+            .update(data.otp, "utf8")
+            .digest("hex");
+
+        const otp = await tx.oTP.findFirst({
+            where: {
+                userId: user.id,
+                type: "PASSWORD_RESET",
+                consumed: false,
+                expiresAt: { gt: new Date() },
+            },
+            orderBy: { createdAt: "desc" },
+        });
+
+        if (!otp) {
+            throw new AppError("Invalid or expired OTP", 400, "INVALID_OTP");
+        }
+
+        if (otp.codeHash !== codeHash) {
+            await tx.oTP.update({
+                where: { id: otp.id },
+                data: { attempts: { increment: 1 } },
+            });
+            throw new AppError("Invalid OTP", 400, "INVALID_OTP");
+        }
+
+        const passwordHash = await hashPassword(data.newPassword);
+
+        await tx.userCredential.update({
+            where: { userId: user.id },
+            data: { passwordHash },
+        });
+
+        await tx.oTP.update({
+            where: { id: otp.id },
+            data: { consumed: true },
+        });
+
+        await tx.refreshToken.updateMany({
+            where: { userId: user.id, revoked: false },
+            data: { revoked: true },
+        });
+
+        await tx.auditLogs.create({
+            data: {
+                userId: user.id,
+                eventType: "PASSWORD_RESET_COMPLETED",
+            },
+        });
+
+        return { message: "Password reset successful" };
+    });
 };

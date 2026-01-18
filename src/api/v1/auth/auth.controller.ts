@@ -9,6 +9,8 @@ import {
   verifyOTP,
 } from "../../../services/auth/auth.service";
 import { AppError } from "../../../utils/error";
+import { resetPassword } from "../../../services/auth/auth.service";
+
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -376,3 +378,52 @@ export const handleVerifyOTP = async (req: Request, res: Response) => {
     });
   }
 }
+
+export const handleResetPassword = async (req: Request, res: Response) => {
+  try {
+    const result = await resetPassword(req.body);
+
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+      data: null,
+      error: null,
+      meta: {
+        version: "v1",
+        timestamp: new Date().toISOString(),
+        requestId: req.headers["x-request-id"] || null,
+      },
+    });
+  } catch (err: any) {
+    if (err instanceof AppError) {
+      return res.status(err.status).json({
+        success: false,
+        message: err.message,
+        data: null,
+        error: { code: err.code, details: err.details },
+        meta: {
+          version: "v1",
+          timestamp: new Date().toISOString(),
+          requestId: req.headers["x-request-id"] || null,
+        },
+      });
+    }
+
+    console.error("Unexpected error in reset password:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      data: null,
+      error: {
+        code: "INTERNAL_ERROR",
+        details: process.env.NODE_ENV === "development" ? err.stack : undefined,
+      },
+      meta: {
+        version: "v1",
+        timestamp: new Date().toISOString(),
+        requestId: req.headers["x-request-id"] || null,
+      },
+    });
+  }
+};

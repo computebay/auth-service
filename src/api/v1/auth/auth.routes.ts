@@ -6,6 +6,7 @@ import {
     RefreshTokenSchema,
     ForgotPasswordSchema,
     VerifyOTPSchema,
+    ResetPasswordSchema
 } from "../../../validators";
 import { validate } from "../../../middlewares/validate";
 import { authenticate } from "../../../middlewares/auth.middleware";
@@ -58,6 +59,7 @@ router.post("/forgot-password", validate(ForgotPasswordSchema), authController.h
  * @body { email, code, type }
  */
 router.post("/verify-otp", validate(VerifyOTPSchema), authController.handleVerifyOTP);
+router.post("/reset-password", validate(ResetPasswordSchema), authController.handleResetPassword);
 
 /**
  * @desc Get logged-in user (for clients)
