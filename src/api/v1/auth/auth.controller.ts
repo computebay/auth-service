@@ -11,7 +11,6 @@ import {
 import { AppError } from "../../../utils/error";
 import { resetPassword } from "../../../services/auth/auth.service";
 
-
 export const register = async (req: Request, res: Response) => {
   try {
     const user = await registerUser(req.body);
@@ -115,7 +114,6 @@ export const login = async (req: Request, res: Response) => {
 };
 
 export const refresh = async (req: Request, res: Response) => {
-
   try {
     const { refreshToken } = req.body;
     const token = await refreshAuthToken(refreshToken);
@@ -168,10 +166,9 @@ export const refresh = async (req: Request, res: Response) => {
 };
 
 export const logout = async (req: Request, res: Response) => {
-
   try {
-    const { refreshToken } = req.body
-    const result = await logoutUser(refreshToken)
+    const { refreshToken } = req.body;
+    const result = await logoutUser(refreshToken);
     return res.status(201).json({
       success: true,
       message: "User logged out",
@@ -217,19 +214,18 @@ export const logout = async (req: Request, res: Response) => {
       },
     });
   }
-}
+};
 
 export const getUser = async (req: Request, res: Response) => {
-
   try {
-    const userId = req.user?.sub
+    const userId = req.user?.sub;
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: "User not found"
-      })
+        message: "User not found",
+      });
     }
-    const result = await getCurrentUser(userId)
+    const result = await getCurrentUser(userId);
     return res.status(201).json({
       success: true,
       message: "",
@@ -275,7 +271,7 @@ export const getUser = async (req: Request, res: Response) => {
       },
     });
   }
-}
+};
 
 export const handleForgotPassword = async (req: Request, res: Response) => {
   try {
@@ -326,7 +322,7 @@ export const handleForgotPassword = async (req: Request, res: Response) => {
       },
     });
   }
-}
+};
 
 export const handleVerifyOTP = async (req: Request, res: Response) => {
   try {
@@ -377,7 +373,7 @@ export const handleVerifyOTP = async (req: Request, res: Response) => {
       },
     });
   }
-}
+};
 
 export const handleResetPassword = async (req: Request, res: Response) => {
   try {

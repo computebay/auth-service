@@ -27,7 +27,7 @@ export const VerifyOTPSchema = z.object({
 export const ResetPasswordSchema = z.object({
   email: z.string().email(),
   otp: z.string().min(4).max(6),
-  newPassword:z.string(),
+  newPassword: z.string(),
 });
 
 export type CreateOTPInput = z.infer<typeof CreateOTPSchema>;

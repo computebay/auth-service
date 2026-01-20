@@ -1,29 +1,28 @@
 import { Router } from "express";
 import * as authController from "./auth.controller";
 import {
-    RegisterUserSchema,
-    loginUserSchema,
-    RefreshTokenSchema,
-    ForgotPasswordSchema,
-    VerifyOTPSchema,
-    ResetPasswordSchema
+  RegisterUserSchema,
+  loginUserSchema,
+  RefreshTokenSchema,
+  ForgotPasswordSchema,
+  VerifyOTPSchema,
+  ResetPasswordSchema,
 } from "../../../validators";
 import { validate } from "../../../middlewares/validate";
 import { authenticate } from "../../../middlewares/auth.middleware";
-import oAuthRoutes from "./oauth/oauth.routes"
+import oAuthRoutes from "./oauth/oauth.routes";
 const router = Router();
 
 router.get("/", (req, res) => {
-    res.send("auth api is up")
+  res.send("auth api is up");
+});
 
-})
-
-router.use("/oauth", oAuthRoutes)
+router.use("/oauth", oAuthRoutes);
 /**
  * @desc Register new user
  * @route POST /api/v1/auth/register
  * @body { email, password, name? }
- * 
+ *
  */
 router.post("/register", validate(RegisterUserSchema), authController.register);
 
@@ -45,7 +44,7 @@ router.post("/refresh", validate(RefreshTokenSchema), authController.refresh);
  * @desc Logout (invalidate refresh token)
  * @route POST /api/v1/auth/logout
  * @body { refreshToken }
-*/
+ */
 router.post("/logout", validate(RefreshTokenSchema), authController.logout);
 
 /**
@@ -53,20 +52,32 @@ router.post("/logout", validate(RefreshTokenSchema), authController.logout);
  * @route POST /api/v1/auth/forgot-password
  * @body { email }
  */
-router.post("/forgot-password", validate(ForgotPasswordSchema), authController.handleForgotPassword);
+router.post(
+  "/forgot-password",
+  validate(ForgotPasswordSchema),
+  authController.handleForgotPassword,
+);
 
 /**
  * @desc Verify OTP (email or phone)
  * @route POST /api/v1/auth/verify-otp
  * @body { email, code, type }
  */
-router.post("/verify-otp", validate(VerifyOTPSchema), authController.handleVerifyOTP);
-router.post("/reset-password", validate(ResetPasswordSchema), authController.handleResetPassword);
+router.post(
+  "/verify-otp",
+  validate(VerifyOTPSchema),
+  authController.handleVerifyOTP,
+);
+router.post(
+  "/reset-password",
+  validate(ResetPasswordSchema),
+  authController.handleResetPassword,
+);
 
 /**
  * @desc Get logged-in user (for clients)
  * @route GET /api/v1/auth/me
  * @auth Required (JWT)
  */
-router.get('/me', authenticate, authController.getUser)
+router.get("/me", authenticate, authController.getUser);
 export default router;
