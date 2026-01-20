@@ -9,5 +9,10 @@ export const googleOauthService = {
     getAuthUrl() {
         const state = crypto.randomUUID()
 
+        const params = new URLSearchParams({
+            client_id: Bun.env.GOOGLE_OAUTH_CLIENT_ID!,
+            redirect_uri: Bun.env.GOOGLE_OAUTH_REDIRECT_URI!,
+
+        })
     }
 }
