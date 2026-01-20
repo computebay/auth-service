@@ -1,5 +1,5 @@
-import prisma from "../../config/db";
-import { signAccessToken, generateRefreshToken } from "../../utils/token";
+import prisma from "../../../config/db";
+import { signAccessToken, generateRefreshToken } from "../../../utils/token";
 
 export const handleOAuthLogin = async (data: {
     provider: "google" | "github";

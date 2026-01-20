@@ -1,6 +1,6 @@
 import crypto from "crypto"
 import { codec } from "zod";
-import { AppError } from "../../utils/error";
+import { AppError } from "../../../utils/error";
 
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
