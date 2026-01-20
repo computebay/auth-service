@@ -10,13 +10,15 @@ import {
 } from "../../../validators";
 import { validate } from "../../../middlewares/validate";
 import { authenticate } from "../../../middlewares/auth.middleware";
-
+import oAuthRoutes from "./oauth/oauth.routes"
 const router = Router();
 
 router.get("/", (req, res) => {
     res.send("auth api is up")
 
 })
+
+router.use("/oauth", oAuthRoutes)
 /**
  * @desc Register new user
  * @route POST /api/v1/auth/register
