@@ -7,7 +7,7 @@ const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 const GOOGLE_PROFILE_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
 
 
-export const googleOauthService = {
+export const googleOAuthService = {
     getAuthUrl() {
         const state = crypto.randomUUID()
 

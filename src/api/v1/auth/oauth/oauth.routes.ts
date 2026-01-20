@@ -1,8 +1,12 @@
 import { Router } from "express";
+import {
+    startOAuth,
+    oauthCallback,
+} from "./oauth.controller";
 
+const router = Router();
 
-const router = Router()
+router.get("/:provider", startOAuth);
+router.get("/:provider/callback", oauthCallback);
 
-// router.get('/:provider')
-
-export default router
+export default router;
