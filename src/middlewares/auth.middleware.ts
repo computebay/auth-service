@@ -21,8 +21,17 @@ export const authenticate = (
       .status(401)
       .json({ success: false, message: "Unauthorized: Auth token missing" });
   }
-  const payload = verifyToken(token);
 
-  req.user = payload;
-  next();
+  try {
+    const payload = verifyToken(token);
+    req.user = payload;
+    next();
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Authentication failed";
+    return res.status(401).json({
+      success: false,
+      message,
+    });
+  }
 };
