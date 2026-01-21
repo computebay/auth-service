@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { codec } from "zod";
 import { AppError } from "../../../utils/error";
+import logger from "../../../libs/logger";
 
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -26,18 +27,39 @@ export const googleOAuthService = {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        client_id: Bun.env.GOOGLE_CLIENT_ID!,
-        client_secret: Bun.env.GOOGLE_CLIENT_SECRET!,
+        client_id: Bun.env.GOOGLE_OAUTH_CLIENT_ID!,
+        client_secret: Bun.env.GOOGLE_OAUTH_CLIENT_SECRET!,
         code,
-        redirect_uri: Bun.env.GOOGLE_REDIRECT_URI!,
+        redirect_uri: Bun.env.GOOGLE_OAUTH_REDIRECT_URI!,
         grant_type: "authorization_code",
       }),
     });
 
-    const tokenData = (await tokenRes.json()) as { access_token: string };
-    if (!tokenData || !tokenData.access_token) {
-      return new Error("No tokenData fetched");
+    if (!tokenRes.ok) {
+      const errText = await tokenRes.text().catch(() => "unable to read error body");
+      console.error("[GOOGLE_OAUTH_TOKEN_ERROR]", {
+        status: tokenRes.status,
+        statusText: tokenRes.statusText,
+        body: errText,
+      });
+      throw new Error(`Google token fetch failed: ${tokenRes.status}`);
     }
+
+    let tokenData: { access_token?: string };
+    try {
+      tokenData = (await tokenRes.json()) as { access_token?: string };
+    } catch (e) {
+      console.error("[GOOGLE_OAUTH_TOKEN_PARSE_ERROR]", e);
+      throw new Error("Failed to parse Google token response");
+    }
+
+    if (!tokenData?.access_token) {
+      console.error("[GOOGLE_OAUTH_TOKEN_MISSING]", {
+        response: tokenData,
+      });
+      throw new Error("No access_token in Google token response");
+    }
+
 
     const profileRes = await fetch(GOOGLE_PROFILE_URL, {
       headers: {
@@ -45,6 +67,7 @@ export const googleOAuthService = {
       },
     });
 
+    
     const profile = (await profileRes.json()) as {
       sub: string;
       email: string;
