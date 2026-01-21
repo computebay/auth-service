@@ -9,7 +9,6 @@ datasource db {
   schemas  = ["auth"]
 }
 
-
 enum OAuthProvider {
   GOOGLE
   GITHUB
@@ -25,8 +24,6 @@ enum Role {
 
   @@schema("auth")
 }
-
-
 
 model User {
   id              String   @id @default(uuid())
@@ -66,9 +63,7 @@ model OAuthAccount {
   userId            String
   provider          OAuthProvider
   providerAccountId String
-  accessToken       String
-  refreshToken      String?
-  expiresAt         DateTime?
+  email             String?
   createdAt         DateTime      @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -117,7 +112,7 @@ model OTP {
   attempts  Int      @default(0)
   consumed  Boolean  @default(false)
   expiresAt DateTime
-  
+
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

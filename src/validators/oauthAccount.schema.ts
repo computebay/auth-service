@@ -4,8 +4,7 @@ export const CreateOAuthAccountSchema = z.object({
   userId: z.string().uuid(),
   provider: z.string(),
   providerAccountId: z.string(),
-  accessToken: z.string(),
-  refreshToken: z.string().optional(),
+  email: z.string(),
   expiresAt: z.date().optional(),
 });
 
