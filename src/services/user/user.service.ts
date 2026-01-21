@@ -1,7 +1,7 @@
-import { prisma } from "../../prisma.config";
+import prisma  from "../../config/db";
 import { AppError } from "../../utils/error";
-import { logger } from "../../libs/logger";
-import type { User } from "../../generated/prisma";
+import logger from "../../libs/logger";
+
 
 export interface UpdateUserInput {
   name?: string;

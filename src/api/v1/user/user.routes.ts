@@ -1,18 +1,21 @@
 import { Router } from "express";
 import * as userController from "./user.controller";
 import { authenticate } from "../../../middlewares/auth.middleware";
+import { authorize } from "../../../middlewares/authorize.middleware";
 
 const router = Router();
 
 router.get("/", (req, res) => {
-  res.send("user api is up");
+    res.send("user api is up");
 });
 
 /**
  * @desc Get all users
- * @route GET /api/v1/users
+ * @route GET /api/v1/users/all
+ * @auth Required (JWT) - Must be ADMIN or OWNER role
+ * @access ADMIN, OWNER
  */
-router.get("/all", userController.listUsers);
+router.get("/all", authenticate, authorize("ADMIN", "OWNER"), userController.listUsers);
 
 /**
  * @desc Get user by ID

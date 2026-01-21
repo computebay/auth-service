@@ -71,6 +71,12 @@ export const createOrg = async (req: Request, res: Response) => {
 export const getOrg = async (req: Request, res: Response) => {
   try {
     const { orgId } = req.params;
+    if (!orgId) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization ID is required",
+      });
+    }
     const org = await getOrganizationById(orgId);
 
     return res.status(200).json({
@@ -186,6 +192,13 @@ export const updateOrg = async (req: Request, res: Response) => {
     }
 
     const { orgId } = req.params;
+    if (!orgId) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization ID is required",
+      });
+    }
+
     const org = await updateOrganization(orgId, ownerId, req.body);
 
     return res.status(200).json({
@@ -244,6 +257,13 @@ export const deleteOrg = async (req: Request, res: Response) => {
     }
 
     const { orgId } = req.params;
+    if (!orgId) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization ID is required",
+      });
+    }
+
     const result = await deleteOrganization(orgId, ownerId);
 
     return res.status(200).json({
@@ -302,6 +322,13 @@ export const addMember = async (req: Request, res: Response) => {
     }
 
     const { orgId } = req.params;
+    if (!orgId) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization ID is required",
+      });
+    }
+
     const membership = await addMemberToOrganization(orgId, ownerId, req.body);
 
     return res.status(201).json({
@@ -360,6 +387,13 @@ export const removeMember = async (req: Request, res: Response) => {
     }
 
     const { orgId, memberId } = req.params;
+    if (!orgId || !memberId) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization ID and Member ID are required",
+      });
+    }
+
     const result = await removeMemberFromOrganization(
       orgId,
       ownerId,
@@ -425,6 +459,13 @@ export const updateMemberRoleHandler = async (
     }
 
     const { orgId, memberId } = req.params;
+    if (!orgId || !memberId) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization ID and Member ID are required",
+      });
+    }
+
     const { role } = req.body;
 
     const membership = await updateMemberRole(orgId, ownerId, memberId, role);

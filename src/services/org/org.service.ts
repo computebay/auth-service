@@ -1,7 +1,7 @@
-import { prisma } from "../../prisma.config";
+import prisma from "../../config/db";
 import { AppError } from "../../utils/error";
-import { logger } from "../../libs/logger";
-import type { Role } from "../../generated/prisma";
+import logger from "../../libs/logger";
+import type { Role } from "../../generated/prisma/enums";
 
 export interface CreateOrgInput {
   name: string;
