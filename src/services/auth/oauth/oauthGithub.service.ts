@@ -10,8 +10,8 @@ export const githubOAuthService = {
     const state = crypto.randomUUID();
 
     const params = new URLSearchParams({
-      client_id: process.env.GITHUB_CLIENT_ID!,
-      redirect_uri: process.env.GITHUB_REDIRECT_URI!,
+      client_id: Bun.env.GITHUB_CLIENT_ID!,
+      redirect_uri: Bun.env.GITHUB_REDIRECT_URI!,
       scope: "user:email",
       state,
     });
@@ -26,8 +26,8 @@ export const githubOAuthService = {
         Accept: "application/json",
       },
       body: new URLSearchParams({
-        client_id: process.env.GITHUB_CLIENT_ID!,
-        client_secret: process.env.GITHUB_CLIENT_SECRET!,
+        client_id: Bun.env.GITHUB_CLIENT_ID!,
+        client_secret: Bun.env.GITHUB_CLIENT_SECRET!,
         code,
       }),
     });
