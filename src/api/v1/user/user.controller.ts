@@ -59,6 +59,9 @@ export const listUsers = async (req: Request, res: Response) => {
 export const getUser = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
+    if(!userId){
+      throw new Error("user id not provided")
+    }
     const user = await getUserById(userId);
 
     return res.status(200).json({

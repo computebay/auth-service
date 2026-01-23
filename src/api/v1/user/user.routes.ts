@@ -21,7 +21,7 @@ router.get("/all", authenticate, authorize("ADMIN", "OWNER"), userController.lis
  * @desc Get user by ID
  * @route GET /api/v1/users/:userId
  */
-router.get("/:userId", userController.getUser);
+router.get("/:userId", authenticate, userController.getUser);
 
 /**
  * @desc Update current user profile
