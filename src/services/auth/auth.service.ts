@@ -577,7 +577,8 @@ export const resetPassword = async (data: {
       where: { id: otp.id },
       data: { consumed: true },
     });
-
+    
+    //revoke the refresh token for the old password
     await tx.refreshToken.updateMany({
       where: { userId: user.id, revoked: false },
       data: { revoked: true },
