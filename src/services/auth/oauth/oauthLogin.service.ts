@@ -1,5 +1,6 @@
 import prisma from "../../../config/db";
 import { signAccessToken, generateRefreshToken } from "../../../utils/token";
+import { AppError } from "../../../utils/error";
 
 
 const providerMap = {
@@ -12,6 +13,7 @@ export const handleOAuthLogin = async (data: {
   email: string;
   name: string;
   emailVerified: boolean;
+  accountType?: "DEVELOPER" | "CONTRIBUTOR";
 }) => {
   return prisma.$transaction(async (tx) => {
     const existingOAuth = await tx.oAuthAccount.findUnique({
@@ -34,13 +36,23 @@ export const handleOAuthLogin = async (data: {
 
       //  If still no user → create
       if (!user) {
+        const typeToUse = data.accountType || "DEVELOPER";
         user = await tx.user.create({
           data: {
             email: data.email,
             name: data.name,
             isEmailVerified: data.emailVerified,
+            accountType: typeToUse,
           },
         });
+
+        if (typeToUse === "CONTRIBUTOR") {
+          await tx.contributorProfile.create({
+            data: {
+              userId: user.id,
+            },
+          });
+        }
 
         const org = await tx.organization.create({
           data: {
@@ -69,7 +81,14 @@ export const handleOAuthLogin = async (data: {
       });
     }
 
-    const accessToken = signAccessToken({ sub: user.id });
+    if (data.accountType && user.accountType !== data.accountType) {
+      throw new AppError("Invalid account type", 401, "INVALID_CREDENTIALS");
+    }
+
+    const accessToken = signAccessToken({
+      sub: user.id,
+      accountType: user.accountType,
+    });
     const { token: refreshToken, hash } = generateRefreshToken();
 
     await tx.refreshToken.create({

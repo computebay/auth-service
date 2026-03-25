@@ -10,7 +10,7 @@ router.get("/", (req, res) => {
 });
 
 /**
- * @desc Get all users
+ * @desc Get all users  
  * @route GET /api/v1/users/all
  * @auth Required (JWT) - Must be ADMIN or OWNER role
  * @access ADMIN, OWNER

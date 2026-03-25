@@ -31,9 +31,8 @@ export const registerUser = async (data: RegisterUserInput) => {
       const user = await tx.user.create({
         data: {
           email: data.email,
-
           name: data.name,
-
+          accountType: data.accountType,
           credentials: {
             create: {
               passwordHash: hashedPassword,
@@ -41,6 +40,14 @@ export const registerUser = async (data: RegisterUserInput) => {
           },
         },
       });
+
+      if (data.accountType === "CONTRIBUTOR") {
+        await tx.contributorProfile.create({
+          data: {
+            userId: user.id,
+          },
+        });
+      }
 
       const org = await tx.organization.create({
         data: {
@@ -61,6 +68,7 @@ export const registerUser = async (data: RegisterUserInput) => {
         sub: user.id,
         orgId: org.id,
         role: "OWNER",
+        accountType: user.accountType,
       });
 
       const { token, hash } = generateRefreshToken();
@@ -138,12 +146,17 @@ export const loginUser = async (data: LoginUserCredential) => {
         throw new AppError("Invalid credentials", 401, "INVALID_CREDENTIALS");
       }
 
+      if (data.accountType && user.accountType !== data.accountType) {
+        throw new AppError("Invalid account type", 401, "INVALID_CREDENTIALS");
+      }
+
       const membership = user.memberships[0];
 
       const accessToken = signAccessToken({
         sub: user.id,
         orgId: membership?.orgId,
         role: membership?.role,
+        accountType: user.accountType,
       });
 
       const { token, hash } = generateRefreshToken();
@@ -249,6 +262,7 @@ export const refreshAuthToken = async (refreshToken: string) => {
         sub: storedToken.userId,
         orgId: membership.orgId,
         role: membership.role,
+        accountType: storedToken.user.accountType,
       });
 
       await tx.auditLogs.create({

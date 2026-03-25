@@ -8,8 +8,8 @@ const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_PROFILE_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
 
 export const googleOAuthService = {
-  getAuthUrl() {
-    const state = crypto.randomUUID();
+  getAuthUrl(accountType?: string) {
+    const state = accountType ? `${crypto.randomUUID()}|${accountType}` : crypto.randomUUID();
 
     const params = new URLSearchParams({
       client_id: Bun.env.GOOGLE_OAUTH_CLIENT_ID!,

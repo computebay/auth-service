@@ -3,6 +3,7 @@ import { z } from "zod";
 export const loginUserSchema = z.object({
   email: z.string(),
   password: z.string().min(8),
+  accountType: z.enum(["DEVELOPER", "CONTRIBUTOR"]).optional(),
 });
 
 export const UpdateUserCredentialSchema = z.object({

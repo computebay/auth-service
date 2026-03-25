@@ -14,13 +14,14 @@ type Provider = keyof typeof providerMap;
 
 export const startOAuth = async (req: Request, res: Response) => {
     const provider = req.params.provider as Provider;
+    const accountType = req.query.accountType as string | undefined;
 
     const service = providerMap[provider];
     if (!service) {
         throw new AppError("Unsupported OAuth provider", 400, "INVALID_PROVIDER");
     }
 
-    const redirectUrl = service.getAuthUrl();
+    const redirectUrl = service.getAuthUrl(accountType);
     return res.redirect(302, redirectUrl);
 };
 
@@ -36,6 +37,9 @@ export const oauthCallback = async (req: Request, res: Response) => {
     if (!code || !state) {
         throw new AppError("Missing OAuth params", 400, "OAUTH_INVALID_CALLBACK");
     }
+    
+    const stateParts = state.split('|');
+    const accountType = stateParts[1] as "DEVELOPER" | "CONTRIBUTOR" | undefined;
 
     const profile = (await service.getUserProfile(code, state)) as {
         id: string;
@@ -52,6 +56,7 @@ export const oauthCallback = async (req: Request, res: Response) => {
         email: profile.email,
         name: profile.name,
         emailVerified: profile.emailVerified,
+        accountType,
     });
 
     // For now: redirect with tokens (can later switch to cookies)

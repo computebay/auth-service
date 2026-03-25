@@ -6,8 +6,8 @@ const GITHUB_PROFILE_URL = "https://api.github.com/user";
 const GITHUB_EMAIL_URL = "https://api.github.com/user/emails";
 
 export const githubOAuthService = {
-  getAuthUrl() {
-    const state = crypto.randomUUID();
+  getAuthUrl(accountType?: string) {
+    const state = accountType ? `${crypto.randomUUID()}|${accountType}` : crypto.randomUUID();
 
     const params = new URLSearchParams({
       client_id: Bun.env.GITHUB_CLIENT_ID!,

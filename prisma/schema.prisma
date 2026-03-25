@@ -9,6 +9,13 @@ datasource db {
   schemas  = ["auth"]
 }
 
+enum AccountType {
+  DEVELOPER
+  CONTRIBUTOR
+
+  @@schema("auth")
+}
+
 enum OAuthProvider {
   GOOGLE
   GITHUB
@@ -20,7 +27,6 @@ enum Role {
   OWNER
   ADMIN
   USER
-  PROVIDER
 
   @@schema("auth")
 }
@@ -34,7 +40,9 @@ model User {
   isPhoneVerified Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-
+  
+  accountType     AccountType 
+  
   credentials   UserCredential?
   oauthAccounts OAuthAccount[]
   sessions      Session[]
@@ -42,6 +50,7 @@ model User {
   otps          OTP[]
   auditLogs     AuditLogs[]
   memberships   Membership[]
+  contributorProfile ContributorProfile?
 
   @@schema("auth")
 }
@@ -80,6 +89,7 @@ model Session {
   userAgent    String?
   createdAt    DateTime @default(now())
   expiresAt    DateTime
+  accountType  AccountType
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -155,5 +165,17 @@ model Membership {
   org  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@unique([userId, orgId])
+  @@schema("auth")
+}
+
+model ContributorProfile {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  isActive           Boolean  @default(false)
+  totalUptimeSeconds Int      @default(0)
+  createdAt          DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@schema("auth")
 }
