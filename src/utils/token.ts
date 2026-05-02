@@ -5,7 +5,7 @@ import type { AccessTokenPayload } from "../types/auth";
 
 export const signAccessToken = (payload: object) => {
   return jwt.sign(payload, Bun.env.JWT_ACCESS_SECRET!, {
-    expiresIn: "15m",
+    expiresIn: "30m",
   });
 };
 
