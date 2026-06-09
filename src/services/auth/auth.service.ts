@@ -347,6 +347,7 @@ export const getCurrentUser = async (userId: string) => {
         email: true,
         name: true,
         phone: true,
+        accountType: true,
         isEmailVerified: true,
         isPhoneVerified: true,
         createdAt: true,
