@@ -110,7 +110,7 @@ export const getUserOrganizations = async (userId: string) => {
       include: {
         org: {
           select: {
-            id: true,
+            
             name: true,
             createdAt: true,
           },
