@@ -4,7 +4,7 @@ import { AppError } from "../../../utils/error";
 
 export const getStats = async (req: Request, res: Response) => {
   try {
-    const stats = await getAdminStats();
+    const stats = await getAdminStats(req.query.range);
 
     return res.status(200).json({
       success: true,
