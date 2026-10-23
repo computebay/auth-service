@@ -18,6 +18,7 @@ export const getAllUsers = async () => {
         phone: true,
         isEmailVerified: true,
         isPhoneVerified: true,
+        role: true,
         createdAt: true,
         memberships: {
           select: {
@@ -57,6 +58,7 @@ export const getUserById = async (userId: string) => {
         phone: true,
         isEmailVerified: true,
         isPhoneVerified: true,
+        role: true,
         createdAt: true,
         memberships: {
           select: {
@@ -112,6 +114,7 @@ export const updateUser = async (userId: string, data: UpdateUserInput) => {
         phone: true,
         isEmailVerified: true,
         isPhoneVerified: true,
+        role: true,
         createdAt: true,
       },
     });

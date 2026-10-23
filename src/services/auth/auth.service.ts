@@ -11,6 +11,7 @@ import { hashPassword, verifyPassword } from "../../utils/crypto";
 import { logAudit } from "../../utils/audit";
 import crypto from "crypto";
 import { signAccessToken, generateRefreshToken } from "../../utils/token";
+import { isPlatformAdmin } from "../../utils/admin";
 
 export const registerUser = async (data: RegisterUserInput) => {
   try {
@@ -96,6 +97,8 @@ export const registerUser = async (data: RegisterUserInput) => {
           id: user.id,
           email: user.email,
           name: user.name,
+          accountType: user.accountType,
+          isAdmin: isPlatformAdmin(user),
         },
         org: {
           id: org.id,
@@ -348,6 +351,7 @@ export const getCurrentUser = async (userId: string) => {
         name: true,
         phone: true,
         accountType: true,
+        role: true,
         isEmailVerified: true,
         isPhoneVerified: true,
         createdAt: true,
@@ -369,7 +373,10 @@ export const getCurrentUser = async (userId: string) => {
       throw new AppError("User not found", 404, "USER_NOT_FOUND");
     }
 
-    return user;
+    return {
+      ...user,
+      isAdmin: isPlatformAdmin(user),
+    };
   } catch (error: any) {
     if (error instanceof AppError) throw error;
 
