@@ -20,6 +20,13 @@ export interface AdminNode {
   runningJobs: number;
   reservedCpu: number;
   reservedMemoryMb: number;
+  gpuAvailable: boolean;
+  gpuName: string | null;
+  gpuCount: number;
+  gpuMemoryMb: number | null;
+  gpuDriverVersion: string | null;
+  gpuMetadataComplete: boolean;
+  gpuExecutionReady: boolean;
 }
 
 export type AdminActivityType =
@@ -162,6 +169,13 @@ interface NodeRow {
   allocatableMemoryMb: number | null;
   lastHeartbeatAt: Date | null;
   createdAt: Date;
+  gpuAvailable: boolean;
+  gpuName: string | null;
+  gpuCount: number;
+  gpuMemoryMb: number | null;
+  gpuDriverVersion: string | null;
+  gpuMetadataComplete: boolean;
+  gpuExecutionReady: boolean;
 }
 
 interface NodeUsageRow {
@@ -456,7 +470,14 @@ export const getAdminStats = async (
           "allocatableCpu",
           "allocatableMemoryMb",
           "lastHeartbeatAt",
-          "createdAt"
+          "createdAt",
+          "gpuAvailable",
+          "gpuName",
+          "gpuCount",
+          "gpuMemoryMb",
+          "gpuDriverVersion",
+          "gpuMetadataComplete",
+          "gpuExecutionReady"
         FROM scheduler."Node"
         ORDER BY
           CASE "status"
@@ -525,6 +546,13 @@ export const getAdminStats = async (
           runningJobs: used?.runningJobs ?? 0,
           reservedCpu: used?.reservedCpu ?? 0,
           reservedMemoryMb: used?.reservedMemoryMb ?? 0,
+          gpuAvailable: node.gpuAvailable,
+          gpuName: node.gpuName,
+          gpuCount: node.gpuCount,
+          gpuMemoryMb: node.gpuMemoryMb,
+          gpuDriverVersion: node.gpuDriverVersion,
+          gpuMetadataComplete: node.gpuMetadataComplete,
+          gpuExecutionReady: node.gpuExecutionReady,
         };
       });
     } else {
